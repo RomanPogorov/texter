@@ -1,0 +1,69 @@
+<!-- <script type="text/javascript" src="https://nextleaders.ru/types.js"></script> -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/skeleton-framework/1.1.1/skeleton.min.css" rel="stylesheet">
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet"> -->
+
+
+<h5>Texter – goTRG content library</h5>
+<p class="desc">This plugin provides actual content for THOR project. Choose any text layers and choose content type.  </p>
+<hr/>
+<form id="myform" name="myform1">
+</form>
+
+  </div>
+<script>
+  onmessage = (event) => {
+  // document.getElementById("target").value = event.data.pluginMessage.oldvalue;
+  var wrapper = document.getElementById("myform");
+  var myHTML = '';
+  //console.log(event.data.pluginMessage);
+    for (let value of Object.keys(event.data.pluginMessage)) {
+      // console.log(value);
+      myHTML += '<input type="radio" name="entity" value="' + value + '">'+ value + '<br/>';
+      //console.log(myHTML);
+    }
+      wrapper.innerHTML = myHTML
+  }
+  </script>
+
+<div class="fixed">
+  <button class="button button-primary" id="create" style="margin-right:8px;">Replace</button>
+  <button class="button" id="close">Close</button>
+</div>
+<script>
+
+  document.getElementById('create').onclick = () => {
+  
+
+  const contentType = document.querySelector('input[name="entity"]:checked').value;
+  parent.postMessage({ pluginMessage: { type: 'texter', contentType } }, '*');
+  
+}
+
+document.getElementById('close').onclick = () => {
+  parent.postMessage({ pluginMessage: { type: 'close' } }, '*')
+}
+// Сюда прилетает значения айтема с code.ts. После этого ЖС ищет id=count и заменяет value на старое значение.
+
+
+
+
+</script>
+
+<form onSubmit={this.handleSubmit}>
+                
+  <ul>
+    <li>
+      <label>
+        <input
+          type="radio"
+          value="small"
+          checked={this.state.choosed === "small"}
+          onChange={this.handleChange}
+        />
+        Small
+      </label>
+    </li>
+  </ul>
+
+  <button type="submit">Make your choice</button>
+</form>
