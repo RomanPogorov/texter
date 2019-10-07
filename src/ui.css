@@ -12,27 +12,35 @@ input {
 h5 {
   margin-bottom: 4px !important;
 }
-svg {
-  zoom:0.8;
-  position: fixed;
-  right: 10px;
-  top: 230px;
-}
+
 
 label {
   font-weight: 400 !important;
-  margin-bottom: 4px !important;
+  /* margin-bottom: 4px !important; */
+  padding-bottom: 10px;
+  display: block;
 }
 
 div.example {
-  margin-top: -20px;
+  margin-top: 10px;
   margin-left: 24px;
   font-size: 12px;
   font-weight: 400;
   color: #b1b1b1;
 }
 
+.button {
+  padding: 8px 16px;
+  margin-right: 12px;
+  font-size: 14px;
+  border:none;
+  background: #cfcfcf;
 
+}
+
+.button-primary {
+  color: #fff;  
+}
 
 /* div.fixed {
   position: fixed;
@@ -66,4 +74,42 @@ p.desc {
 .button.button-primary, button.button-primary, input[type=submit].button-primary, input[type=reset].button-primary, input[type=button].button-primary {
   background-color: #2354C3 !important;
   border: 1px solid #2354C3;
+}
+
+.css-2b097c-container, .css-yk16xz-control, .css-1hwfws3, .css-w8afj7-Input   {
+  /* height: 44px; */
+}
+
+.css-w8afj7-Input {
+  /* height: 40px; */
+}
+
+.css-w8afj7-Input {
+  margin: 0px !important;
+}
+
+div.custom {
+  
+}
+
+div.customExample {
+  height: 44px;
+}
+
+
+div.customExample div.example {
+  display: inline-block;
+  margin-left: 0px;
+  margin-right: 4px;
+  height: 44px;
+  margin-top: 4px;
+  
+}
+
+.css-exsgvt, .css-jw0ah9 {
+  margin-left: -3px !important;
+}
+.css-1w28lf2, .css-1jqvvy7 {
+padding-right: 9px !important;
+
 }

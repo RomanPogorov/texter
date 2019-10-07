@@ -7,7 +7,7 @@ const mySelection = figma.currentPage.selection
 function digger(node, fn) {
   if (node == null) return
   fn(node)
-  if (node.children == null) return 
+  if (node.children == null) return
   for (const child of node.children) {
     digger(child, fn)
   }
@@ -20,17 +20,63 @@ async function asyncDigger(node, fn) {
   await fn(node)
   if (node.children == null) return
   for (const child of node.children) {
-    
     await asyncDigger(child, fn)
   }
 }
 
-
 const generalFun = async msg => {
-  console.log(msg)
   if (msg.type === "close") {
     figma.closePlugin()
     return
+  }
+
+  if (msg.type === "storage") {
+    figma.clientStorage.setAsync("texter", dataTypes)
+    async function getLocalStorage(key) {
+      let sss = await figma.clientStorage.getAsync(key)
+    }
+    getLocalStorage("texter")
+    console.log("Storage")
+    return
+  }
+
+  if (msg.type === "check") {
+    async function getLocalStorage(key) {
+      let sss = await figma.clientStorage.getAsync(key)
+      console.log(sss)
+    }
+    getLocalStorage("texter")
+    return
+  }
+
+  if (msg.type === "create" && msg.chosedTab === 0) {
+    figma.currentPage.selection.forEach(async selection => {
+      async function doSomething(child) {
+        if (child.type == "TEXT") {
+          await figma.loadFontAsync(child.fontName)
+          let selectedItem = msg.choosed
+          child.characters =
+            dataTypes[selectedItem][
+              Math.floor(Math.random() * dataTypes[selectedItem].length)
+            ]
+        }
+      }
+      digger(selection, doSomething)
+    })
+  }
+
+  if (msg.type === "create" && msg.chosedTab === 2) {
+    figma.currentPage.selection.forEach(async selection => {
+      async function doSomething(child) {
+        if (child.type == "TEXT") {
+          await figma.loadFontAsync(child.fontName)
+          let selectedItem = msg.choosed
+          console.log(msg.fakerString)
+          child.characters = autoData[selectedItem][0]()
+        }
+      }
+      digger(selection, doSomething)
+    })
   }
 
   if (msg.type === "create" && msg.chosedTab === 1) {
@@ -39,56 +85,33 @@ const generalFun = async msg => {
         if (child.type == "TEXT") {
           await figma.loadFontAsync(child.fontName)
           let selectedItem = msg.choosed
-          child.characters =
-            autoData[selectedItem][0
-              // Math.floor(Math.random() * autoData[selectedItem].length)
-            ]()
+          child.characters = autoData[selectedItem][0]()
         }
       }
       digger(selection, doSomething)
     })
-
-    // This plugin looks at all the currently selected nodes and inverts the colors
-    // in their image, if they use an image paint.
-    
   }
-  if(msg.type === "create" && msg.chosedTab === 2) {
-    for(let selection of figma.currentPage.selection) {
+
+  if (msg.type === "create" && msg.chosedTab === 3) {
+    for (let selection of figma.currentPage.selection) {
       await asyncDigger(selection, mapNodes)
-      // console.log(selection)
     }
   }
-  console.log('end')
-
 }
 
-async function setFill({id, fills:[fill], width, height}) {
-  // console.log('setFill')
-  // Only invert the color for images (but you could do it
-  // for solid paints and gradients if you wanted)
-  // console.log(11111, id)
-  // Wait for the worker's response
-
+async function setFill({ id, fills: [fill], width, height }) {
   const newBytes: Uint8Array = await new Promise((resolve, reject) => {
     figma.ui.postMessage({ id, width, height })
-    figma.ui.onmessage = (value) => resolve(value.buffer as Uint8Array)
+    figma.ui.onmessage = value => resolve(value.buffer as Uint8Array)
   })
 
   figma.ui.onmessage = generalFun
-  
-
-  // Create a new paint for the new image. Uploading the image will give us
-  // an image hash.
-  console.log(newBytes)
   const aaa = figma.createImage(newBytes)
-  const scaleMode = (fill || {}).scaleMode || 'FILL'
-  return { type: 'IMAGE', scaleMode: scaleMode, imageHash: aaa.hash }
+  const scaleMode = (fill || {}).scaleMode || "FILL"
+  return { type: "IMAGE", scaleMode: scaleMode, imageHash: aaa.hash }
 }
 
 async function mapNodes(node) {
-  // Look for fills on node types that have fills.
-  // An alternative would be to do `if ('fills' in node) { ... }
-  // console.log(node.type, node.id)
   switch (node.type) {
     case "RECTANGLE":
     case "ELLIPSE":
@@ -96,18 +119,12 @@ async function mapNodes(node) {
     case "STAR":
     case "VECTOR":
     case "TEXT": {
-      // Create a new array of fills, because we can't directly modify the old one
-      
-      // console.log('8181', t)
       node.fills = [await setFill(node)]
-      
     }
 
     default: {
-      // not supported, silently do nothing
     }
   }
 }
-
 
 figma.ui.onmessage = generalFun

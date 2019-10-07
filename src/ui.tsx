@@ -1,24 +1,25 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import "./ui.css"
+import * as R from "ramda"
 import fakerData from "faker"
+import "./ui.css"
 import { dataTypes as dataTypesUI } from "./types"
-import { fakerDataTypes, fakerDataTypesAll } from "./Fakertypes"
+import Select from "react-select"
+import { fakerDataTypes } from "./Fakertypes"
 import { autoData } from "./Fakertypes"
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs"
 import "react-tabs/style/react-tabs.css"
+import map from "ramda/es/map";
 
 declare function require(path: string): any
-// Create an event handler to receive messages from the main thread
+
 window.onmessage = async ({ data }) => {
-
-  // console.log('1515',data)
-  if(data == null || data.pluginMessage == null || data.pluginMessage.id == null) return
-  // Just get the bytes directly from the pluginMessage since that's
-  // the only type of message we'll receive in this plugin. In more
-  // complex plugins, you'll want to check the type of the message.
-  
-
+  if (
+    data == null ||
+    data.pluginMessage == null ||
+    data.pluginMessage.id == null
+  )
+    return
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
   const image = await new Promise((resolve, reject) => {
@@ -26,32 +27,20 @@ window.onmessage = async ({ data }) => {
     img.crossOrigin = "Anonymous"
     img.onload = () => resolve(img)
     img.onerror = () => reject()
-    
-
     if (data.pluginMessage.width >= 800) {
       img.src = `https://picsum.photos/1600?=${data.pluginMessage.id}`
-      console.log('If >= 600: ' + data.pluginMessage.width)
     }
-
     if (data.pluginMessage.width >= 600 && data.pluginMessage.width < 800) {
       img.src = `https://picsum.photos/1000?=${data.pluginMessage.id}`
-      console.log('If >= 600: ' + data.pluginMessage.width)
     }
-
     if (data.pluginMessage.width < 600 && data.pluginMessage.width > 200) {
       img.src = `https://picsum.photos/800?=${data.pluginMessage.id}`
-      console.log('If < 600 && > 200: ' + data.pluginMessage.width)
     }
     if (data.pluginMessage.width <= 200) {
       img.src = `https://picsum.photos/400?=${data.pluginMessage.id}`
-      console.log('If <= 200: ' + data.pluginMessage.width)
     }
-   
-    // console.log('w is: ' + data.pluginMessage.width)
-    // console.log('h is: ' + data.pluginMessage.width)
   })
 
-  // console.log(2929)
   canvas.width = image.width
   canvas.height = image.height
   ctx.drawImage(image, 0, 0)
@@ -63,8 +52,10 @@ window.onmessage = async ({ data }) => {
       reader.readAsArrayBuffer(blob)
     })
   })
-  console.log(data)
-  window.parent.postMessage({ pluginMessage: { id: data.pluginMessage.id, buffer } }, '*')
+  window.parent.postMessage(
+    { pluginMessage: { id: data.pluginMessage.id, buffer } },
+    "*"
+  )
 }
 
 export const TypeChooser = ({ choosed, setChoosed }) => {
@@ -86,6 +77,12 @@ export const TypeChooser = ({ choosed, setChoosed }) => {
   )
 }
 
+const Example = ({ autoData, type }) => {
+  const example = React.useMemo(() => autoData[type][0](), [type])
+  return <div className="example">{example}</div>
+}
+
+// console.log(autoData)
 export const FakerChooser2 = ({ choosed, setChoosed }) => {
   return (
     <form id="myform" name="myform1">
@@ -98,12 +95,34 @@ export const FakerChooser2 = ({ choosed, setChoosed }) => {
             onChange={() => setChoosed(type)}
           />
           {type}
-          <div className="example">{autoData[type][0]()}</div>
+          <Example autoData={autoData} type={type} />
         </label>
       ))}
     </form>
   )
 }
+
+let optionsForSelect = []
+
+const createValidObjextFromFaker = function() {
+  {
+    Object.keys(autoData).map(type =>
+      optionsForSelect.push({ value: type, label: type })
+    )
+  }
+}
+// console.log(optionsForSelect)
+// console.log(fakerData.fake("{{type}}, {{name.firstName}} {{name.suffix}}"))
+// console.log(fakerData.fake("{{type}}, {{name.firstName}} {{name.suffix}}"))
+
+const PREPOSITIONS = [",", ".", "(", ")"]
+
+optionsForSelect.push({ value: PREPOSITIONS[0], label: PREPOSITIONS[0] })
+optionsForSelect.push({ value: PREPOSITIONS[1], label: PREPOSITIONS[1] })
+optionsForSelect.push({ value: PREPOSITIONS[2], label: PREPOSITIONS[2] })
+optionsForSelect.push({ value: PREPOSITIONS[3], label: PREPOSITIONS[3] })
+
+createValidObjextFromFaker()
 
 export const FakerChooser = ({ choosed, setChoosed }) => {
   return (
@@ -144,24 +163,162 @@ function Button({ className, id, onClick, children }) {
 
 const onClose = () => {
   parent.postMessage({ pluginMessage: { type: "close" } }, "*")
-  console.log("Close")
+}
+
+const setLocalStorage = () => {
+  parent.postMessage({ pluginMessage: { type: "storage" } }, "*")
+}
+const checkLocalStorage = () => {
+  parent.postMessage({ pluginMessage: { type: "check" } }, "*")
+}
+
+const colourStyles = {
+  option: (styles, { data: { label } }) => ({
+    ...styles,
+    color: PREPOSITIONS.indexOf(label) !== -1 ? "#ababab" : "#444"
+  }),
+  multiValueLabel: (styles, { data: { label } }) => ({
+    ...styles,
+    paddingRight: 9,
+    backgroundColor: PREPOSITIONS.indexOf(label) !== -1 ? "#eaeaea" : "#c3c3c3"
+  }),
+  multiValueRemove: (styles, { data: { label } }) => ({
+    ...styles,
+    marginLeft: -3,
+    backgroundColor: PREPOSITIONS.indexOf(label) !== -1 ? "#eaeaea" : "#c3c3c3",
+    ":hover": {
+      backgroundColor:
+        PREPOSITIONS.indexOf(label) !== -1 ? "#cacaca" : "#a2a2a2",
+      color: PREPOSITIONS.indexOf(label) !== -1 ? "#000" : "#"
+    }
+  })
 }
 
 const App = () => {
   const [choosed, setChoosed] = React.useState(null)
-  const [chosedTab, setChosedTab] = React.useState(null)
+  const [chosedTab, setChosedTab] = React.useState(0)
+  const [selectValue, setSelectValue] = React.useState([])
+  let [fakerString, setFakerString] = React.useState([])
   const onCreate = React.useCallback(
     () =>
-      parent.postMessage({ pluginMessage: { type: "create", choosed, chosedTab } }, "*"),
-    [choosed, chosedTab]
+      parent.postMessage(
+        { pluginMessage: { type: "create", choosed, chosedTab, fakerString } },
+        "*"
+      ),
+
+    [choosed, chosedTab, fakerString]
   )
+
+  const onSelectChange = currentValues => {
+    const selectedValuesLength = selectValue ? selectValue.length : 0
+    const currentValuesLength = currentValues ? currentValues.length : 0
+
+    if (currentValuesLength > selectedValuesLength) {
+      const { label, value } = currentValues[currentValues.length - 1]
+      if (label === "(") {
+        optionsForSelect.unshift({ value: value + "(", label: "(" })
+      }
+      if (label === ")") {
+        optionsForSelect.unshift({ value: value + ")", label: ")" })
+      }
+      if (label === ".") {
+        optionsForSelect.unshift({ value: value + ".", label: "." })
+      }
+      if (label === ",") {
+        optionsForSelect.unshift({ value: value + ",", label: "," })
+      }
+    }
+
+    optionsForSelect = R.uniqBy(({ label }) => label, optionsForSelect)
+
+    let functionNamesForFakerToFigma = []
+
+    Object.values(currentValues != null && currentValues).map(
+      ({ label }) =>
+        functionNamesForFakerToFigma.push(label.replace(" / ", "."))
+      // console.log(functionNamesForFakerToFigma)
+      // optionsForSelect.push({ value: type, label: type })
+    )
+
+    // console.log(functionNamesForFakerToFigma)
+    setFakerString((fakerString = functionNamesForFakerToFigma))
+    setSelectValue(currentValues)
+ 
+    let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
+      .map(item => item === ',' || item === '.' || item === '(' || item === ')' ? `${item}` : `{{${item}}}`).join(" ")
+}")`
+
+// let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
+//   .map(
+//     item => {
+//       switch (item) {
+//       case ',':
+//         `${item}`
+//         break;
+//       case '.':
+//         `${item}`
+//         break;
+//       case '(':
+//         `${item}`
+//         break;
+//       case ')':
+//         `${item}`
+//         break;
+//       default:
+//         `{{${item}}}`
+//     }
+//   }
+//     )
+//     .join("")
+// }")`
+
+
+      // let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
+      //   .map(item => `{{${item}}}`)}")`
+
+        // functionNamesForFakerToFigma.map(item => console.log(item)
+    console.log(fakeStart)
+    // console.log(fakerData.fake("{{name.firstName}}{{name.lastName}},{{name.jobTitle}}({{name.jobDescriptor}})"))
+
+    // var str = functionNamesForFakerToFigma.join('{}');
+    // console.log(fakerData.fake("{{address.cityPrefix}}"))
+    // fakerData.fake("{{name.lastName}}, {{name.firstName}} {{name.suffix}}");
+    // fakerData.fake("{{address.zipCode}}")
+  }
+
+  optionsForSelect.sort(function(a, b) {
+    var nameA = a.value.toLowerCase(),
+      nameB = b.value.toLowerCase()
+    if (nameA < nameB)
+      //sort string ascending
+      return -1
+    if (nameA > nameB) return 1
+    return 0 //default return value (no sorting)
+  })
+
+  const renderSelectedValues = () =>
+    selectValue &&
+    selectValue.map(({ value, label }) => {
+      if (label == "," || label == "." || label == "(" || label == ")") {
+        return (
+          <div key={value} className="example">
+            {label}
+          </div>
+        )
+      }
+      // const functionNameArray = label.split("/")
+      // console.log({autoData}, {label})
+      return <Example key={value} autoData={autoData} type={label} />
+    })
+
   return (
     <div>
       {/* <Greetings /> */}
-      <Tabs onSelect={(val) => setChosedTab(val)}>
+      <Tabs onSelect={val => setChosedTab(val)}>
         <TabList>
           <Tab>TRG Content</Tab>
           <Tab>Faker.js</Tab>
+          <Tab>Custom</Tab>
           <Tab>Images</Tab>
         </TabList>
 
@@ -173,15 +330,42 @@ const App = () => {
           <FakerChooser2 choosed={choosed} setChoosed={setChoosed} />
         </TabPanel>
         <TabPanel>
+          <div className="custom">
+            <Select
+              value={selectValue}
+              onChange={onSelectChange}
+              options={optionsForSelect}
+              isMulti
+              styles={colourStyles}
+            />
+          </div>
+          <div className="customExample">{renderSelectedValues()}</div>
+        </TabPanel>
+        <TabPanel>
           <Greetings />
         </TabPanel>
       </Tabs>
       <div className="fixed">
-        <Button className="button button-primary" id="create" onClick={onCreate}>
+        <Button
+          className="button button-primary"
+          id="create"
+          onClick={onCreate}
+        >
           Replace
         </Button>
         <Button className="button" id="close" onClick={onClose}>
           Close
+        </Button>
+        <Button className="button" id="storage" onClick={setLocalStorage}>
+          Set storage
+        </Button>
+
+        <Button
+          className="button"
+          id="storageCheck"
+          onClick={checkLocalStorage}
+        >
+          Check storage
         </Button>
       </div>
     </div>
