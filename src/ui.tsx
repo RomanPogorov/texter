@@ -1,15 +1,15 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import * as R from "ramda"
-import fakerData from "faker"
 import "./ui.css"
+import fakerData from "faker"
 import { dataTypes as dataTypesUI } from "./types"
 import Select from "react-select"
 import { fakerDataTypes } from "./Fakertypes"
 import { autoData } from "./Fakertypes"
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs"
 import "react-tabs/style/react-tabs.css"
-import map from "ramda/es/map";
+import map from "ramda/es/map"
 
 declare function require(path: string): any
 
@@ -75,6 +75,10 @@ export const TypeChooser = ({ choosed, setChoosed }) => {
       ))}
     </form>
   )
+}
+window.onmessage = (event) => {
+console.log(event.data.pluginMessage)
+
 }
 
 const Example = ({ autoData, type }) => {
@@ -153,6 +157,17 @@ const Greetings = () => (
   </div>
 )
 
+
+export const Custom = ({ choosed, setChosed }) => {
+  return (
+    <form id="myform" name="myform1"></form>
+  )
+}
+// onmessage = (event) => {
+//   console.log(event.data.pluginMessage)
+//   console.log('asd')
+// }
+
 function Button({ className, id, onClick, children }) {
   return (
     <button className={className} id={id} onClick={onClick}>
@@ -194,11 +209,13 @@ const colourStyles = {
   })
 }
 
+
+
 const App = () => {
   const [choosed, setChoosed] = React.useState(null)
   const [chosedTab, setChosedTab] = React.useState(0)
   const [selectValue, setSelectValue] = React.useState([])
-  let [fakerString, setFakerString] = React.useState([])
+  let [fakerString, setFakerString] = React.useState("")
   const onCreate = React.useCallback(
     () =>
       parent.postMessage(
@@ -208,6 +225,21 @@ const App = () => {
 
     [choosed, chosedTab, fakerString]
   )
+  const addToFavorites = React.useCallback(
+    () =>
+      parent.postMessage(
+        { pluginMessage: { type: "addtofavorites", choosed, chosedTab, fakerString } },
+        "*"
+      ),
+
+    [choosed, chosedTab, fakerString]
+  )
+
+  /*
+  fakerData -renameKeys-> fakerWithRenamedKeys -> 
+
+
+  */
 
   const onSelectChange = currentValues => {
     const selectedValuesLength = selectValue ? selectValue.length : 0
@@ -241,43 +273,72 @@ const App = () => {
     )
 
     // console.log(functionNamesForFakerToFigma)
-    setFakerString((fakerString = functionNamesForFakerToFigma))
+
     setSelectValue(currentValues)
- 
-    let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
-      .map(item => item === ',' || item === '.' || item === '(' || item === ')' ? `${item}` : `{{${item}}}`).join(" ")
-}")`
+    let fakeStart = `${functionNamesForFakerToFigma
+      .map(item =>
+        item === "," || item === "." || item === "(" || item === ")"
+          ? `${item}`
+          : `{{${item}}}`
+      )
+      .join(" ")}`
 
-// let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
-//   .map(
-//     item => {
-//       switch (item) {
-//       case ',':
-//         `${item}`
-//         break;
-//       case '.':
-//         `${item}`
-//         break;
-//       case '(':
-//         `${item}`
-//         break;
-//       case ')':
-//         `${item}`
-//         break;
-//       default:
-//         `{{${item}}}`
-//     }
-//   }
-//     )
-//     .join("")
-// }")`
+    setFakerString((fakerString = fakeStart))
+    
 
+    // const withSpaceInEnd = [",", "."]
+    // const withoutSpace = ["(", ")"]
+    // // console.log(functionNamesForFakerToFigma)
+    // const fakeD = functionNamesForFakerToFigma.reduce((acc, v, index, arr) => {
+    //   const isSpecial = withSpaceInEnd.includes(v) || withoutSpace.includes(v)
+    //   if(index === arr.length - 1) {
+    //     if(isSpecial) return [...acc, `{{${v}}}`]
+    //     return [...acc, v]
+    //   }
 
-      // let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
-      //   .map(item => `{{${item}}}`)}")`
+    //   if ([',', ')'].includes(arr[index + 1])) {
+    //     return [...acc, `${v}`]
+    //   }
+    //   if (withoutSpace.includes(v)) {
+    //     return [...acc, v]
+    //   }
 
-        // functionNamesForFakerToFigma.map(item => console.log(item)
-    console.log(fakeStart)
+    //   return [...acc, ` {{${v}}}`]
+    // }, [])
+    // // console.log(fakeD)
+    // let fakeStart = `fakerData.fake("${fakeD.join("")}")`
+
+    // console.log(fakeStart)
+
+    // let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
+    //   .map(
+    //     item => {
+    //       switch (item) {
+    //       case ',':
+    //         `${item}`
+    //         break;
+    //       case '.':
+    //         `${item}`
+    //         break;
+    //       case '(':
+    //         `${item}`
+    //         break;
+    //       case ')':
+    //         `${item}`
+    //         break;
+    //       default:
+    //         `{{${item}}}`
+    //     }
+    //   }
+    //     )
+    //     .join("")
+    // }")`
+
+    // let fakeStart = `fakerData.fake("${functionNamesForFakerToFigma
+    //   .map(item => `{{${item}}}`)}")`
+
+    // functionNamesForFakerToFigma.map(item => console.log(item)
+    // console.log(fakeStart)
     // console.log(fakerData.fake("{{name.firstName}}{{name.lastName}},{{name.jobTitle}}({{name.jobDescriptor}})"))
 
     // var str = functionNamesForFakerToFigma.join('{}');
@@ -316,15 +377,15 @@ const App = () => {
       {/* <Greetings /> */}
       <Tabs onSelect={val => setChosedTab(val)}>
         <TabList>
-          <Tab>TRG Content</Tab>
+          {/* <Tab>TRG Content</Tab> */}
           <Tab>Faker.js</Tab>
           <Tab>Custom</Tab>
           <Tab>Images</Tab>
         </TabList>
 
-        <TabPanel>
+        {/* <TabPanel>
           <TypeChooser choosed={choosed} setChoosed={setChoosed} />
-        </TabPanel>
+        </TabPanel> */}
         <TabPanel>
           <Greetings />
           <FakerChooser2 choosed={choosed} setChoosed={setChoosed} />
@@ -340,6 +401,7 @@ const App = () => {
             />
           </div>
           <div className="customExample">{renderSelectedValues()}</div>
+          <div><Custom /></div>
         </TabPanel>
         <TabPanel>
           <Greetings />
@@ -356,7 +418,7 @@ const App = () => {
         <Button className="button" id="close" onClick={onClose}>
           Close
         </Button>
-        <Button className="button" id="storage" onClick={setLocalStorage}>
+        <Button className="button" id="addtofavorites" onClick={addToFavorites}>
           Set storage
         </Button>
 

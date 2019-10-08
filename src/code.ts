@@ -1,6 +1,7 @@
 import { dataTypes } from "./types"
+import fakerData from "faker"
 import { autoData } from "./Fakertypes"
-figma.showUI(__html__, { width: 440, height: 680 })
+figma.showUI(__html__, { width: 640, height: 680 })
 
 const mySelection = figma.currentPage.selection
 
@@ -24,30 +25,45 @@ async function asyncDigger(node, fn) {
   }
 }
 
+async function getLocalStorage(key) {
+  const res = await figma.clientStorage.getAsync(key)
+  // console.log(res)
+  return res
+}
+
+
+
+
 const generalFun = async msg => {
   if (msg.type === "close") {
     figma.closePlugin()
     return
   }
 
-  if (msg.type === "storage") {
-    figma.clientStorage.setAsync("texter", dataTypes)
-    async function getLocalStorage(key) {
-      let sss = await figma.clientStorage.getAsync(key)
-    }
-    getLocalStorage("texter")
-    console.log("Storage")
+  // localStorage.setItem('favorites', msg.fakerString);
+
+  if (msg.type === "addtofavorites") {
+    // console.log(msg.fakerString);
+    const prev = await getLocalStorage("favorites")
+    // figma.ui.postMessage({ prev })
+    await figma.clientStorage.setAsync('favorites', prev ? [...prev, msg.fakerString] : [msg.fakerString])
     return
   }
 
   if (msg.type === "check") {
-    async function getLocalStorage(key) {
-      let sss = await figma.clientStorage.getAsync(key)
-      console.log(sss)
-    }
-    getLocalStorage("texter")
+    await figma.clientStorage.setAsync('favorites', '')
+    // async function getLocalStorage(key) {
+    //   let sss = await figma.clientStorage.getAsync(key)
+    //   // console.log(sss)
+    // }
+    // getLocalStorage("texter")
     return
   }
+  const lStorage = getLocalStorage("favorites")
+  console.log(lStorage)
+
+  figma.ui.postMessage (lStorage)
+  
 
   if (msg.type === "create" && msg.chosedTab === 0) {
     figma.currentPage.selection.forEach(async selection => {
@@ -71,8 +87,9 @@ const generalFun = async msg => {
         if (child.type == "TEXT") {
           await figma.loadFontAsync(child.fontName)
           let selectedItem = msg.choosed
-          console.log(msg.fakerString)
-          child.characters = autoData[selectedItem][0]()
+          console.log(msg.fakerString);
+          
+          msg.fakerString !== '' ? child.characters = fakerData.fake(msg.fakerString) : child.characters = child.characters
         }
       }
       digger(selection, doSomething)
